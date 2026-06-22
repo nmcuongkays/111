@@ -371,15 +371,53 @@ function cleanLookupText(text){
   return raw.split(' ')[0].slice(0,40);
 }
 function maziiUrl(text){ return 'https://mazii.net/vi-VN/search/word/javi/' + encodeURIComponent(cleanLookupText(text)); }
-function openMazii(text){
+function maziiAppUrl(text){ return 'mazii://search?query=' + encodeURIComponent(cleanLookupText(text)); }
+function isIOSDevice(){
+  return /iPad|iPhone|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function openMaziiWeb(text){
   const q=cleanLookupText(text);
   if(!q){ alert('Hãy chọn hoặc chạm vào một từ tiếng Nhật trước.'); return; }
   window.open(maziiUrl(q), '_blank', 'noopener');
 }
+function openMazii(text){
+  const q=cleanLookupText(text);
+  if(!q){ alert('Hãy chọn hoặc chạm vào một từ tiếng Nhật trước.'); return; }
+  const webUrl=maziiUrl(q);
+  const appUrl=maziiAppUrl(q);
+
+  // Trên iPhone/iPad: thử mở app Mazii trước. Nếu app không mở được,
+  // tự quay sang Mazii web sau một khoảng ngắn. Nếu Mazii hỗ trợ Universal Link
+  // cho URL web, trình duyệt cũng có thể tự chuyển sang app.
+  if(isIOSDevice()){
+    let openedApp=false;
+    const markOpened=()=>{ openedApp=true; };
+    const cleanup=()=>{
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', markOpened);
+      window.removeEventListener('blur', markOpened);
+    };
+    const onVisibility=()=>{ if(document.hidden || document.visibilityState==='hidden') markOpened(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', markOpened, {once:true});
+    window.addEventListener('blur', markOpened, {once:true});
+
+    window.location.href=appUrl;
+    setTimeout(()=>{
+      cleanup();
+      if(!openedApp){ window.location.href=webUrl; }
+    }, 900);
+    return;
+  }
+
+  // Trên PC/Android: mở Mazii web trong tab mới. Nếu thiết bị có liên kết app,
+  // trình duyệt có thể tự mở app Mazii.
+  window.open(webUrl, '_blank', 'noopener');
+}
 function lookupWordHtml(text, extraClass=''){
   const q=String(text||'').trim();
   if(!q) return '';
-  return `<button type="button" class="lookup-word ${esc(extraClass)}" data-lookup="${attr(q)}" title="Chạm để tra Mazii">${esc(q)}</button>`;
+  return `<button type="button" class="lookup-word ${esc(extraClass)}" data-lookup="${attr(q)}" title="Chạm để mở Mazii">${esc(q)}</button>`;
 }
 function ensureMaziiUi(){
   let menu=$('#maziiMenu');
@@ -387,7 +425,7 @@ function ensureMaziiUi(){
     menu=document.createElement('div');
     menu.id='maziiMenu';
     menu.className='mazii-menu';
-    menu.innerHTML=`<div class="mazii-menu-word" id="maziiMenuWord"></div><div class="mazii-menu-actions"><button class="primary" id="maziiOpenBtn">Tra Mazii</button><button id="maziiCopyBtn">Sao chép</button><button class="ghost" id="maziiCloseBtn" style="grid-column:1/-1">Đóng</button></div>`;
+    menu.innerHTML=`<div class="mazii-menu-word" id="maziiMenuWord"></div><div class="mazii-menu-actions"><button class="primary" id="maziiOpenBtn">Mở Mazii</button><button id="maziiCopyBtn">Sao chép</button><button class="ghost" id="maziiCloseBtn" style="grid-column:1/-1">Đóng</button></div><div class="mazii-note">Ưu tiên mở app Mazii trên iPhone. Nếu không mở được, app sẽ tự chuyển sang Mazii web.</div>`;
     document.body.appendChild(menu);
   }
   let fab=$('#maziiFab');
@@ -396,7 +434,7 @@ function ensureMaziiUi(){
     fab.id='maziiFab';
     fab.className='mazii-fab';
     fab.type='button';
-    fab.textContent='🔍 Tra Mazii';
+    fab.textContent='🔍 Mở Mazii';
     document.body.appendChild(fab);
   }
   return {menu,fab};
@@ -855,8 +893,8 @@ function backHtml(c){
   return `<div class="answer-title">Đáp án</div>
     ${fullFrontHtml(c)}
     ${c.meaning_vi?`<div class="meaning">${esc(c.meaning_vi)}</div>`:''}
-    <div class="toolbar"><button type="button" class="primary" data-lookup="${attr(c.title)}">Tra từ này bằng Mazii</button></div>
-    <div class="mazii-note">Mẹo: trong phần nội dung gốc, bạn có thể bôi đen từ tiếng Nhật rồi bấm nút “🔍 Tra Mazii” ở góc màn hình.</div>
+    <div class="toolbar"><button type="button" class="primary" data-lookup="${attr(c.title)}">Mở Mazii</button></div>
+    <div class="mazii-note">Mẹo: trong phần nội dung gốc, bạn có thể bôi đen từ tiếng Nhật rồi bấm nút “🔍 Mở Mazii” ở góc màn hình.</div>
     ${app.state.settings.showRaw?`<details class="pdf-source" open><summary>Nội dung gốc đã trích từ PDF</summary>${pdfLikeHtml(c)}</details>`:''}`;
 }
 function rateCard(card, rate){
@@ -900,7 +938,7 @@ function renderQuiz(){
       <main class="focus-body">
         <section class="panel">
           <h2>Quiz nhanh</h2>
-          <p class="muted">Kiểu active recall: chỉ hiện câu hỏi. Cách đọc, Hán Việt và đáp án chỉ hiện sau khi bạn chọn. Sau khi hiện đáp án, có thể chạm vào từ để tra Mazii.</p>
+          <p class="muted">Kiểu active recall: chỉ hiện câu hỏi. Cách đọc, Hán Việt và đáp án chỉ hiện sau khi bạn chọn. Sau khi hiện đáp án, có thể chạm vào từ để mở Mazii.</p>
           <div class="toolbar">
             ${fontSizeControl('quizFontScale','Cỡ chữ')}
             <label class="small">Kiểu câu hỏi
