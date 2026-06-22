@@ -82,6 +82,35 @@ input,select,textarea{min-height:44px}
 }
 @media(hover:none){button:hover{transform:none}}
 
+
+/* Chrome-like horizontal tabs and focus study mode */
+.layout{grid-template-columns:1fr;gap:16px}
+.sidebar{position:static;top:auto;align-self:stretch;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.chrome-tabs{grid-column:1/-1;display:flex;align-items:flex-end;gap:2px;overflow-x:auto;padding:0 6px;border-bottom:1px solid var(--line);scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.chrome-tabs .nav{display:inline-flex;align-items:center;justify-content:center;width:auto;min-width:max-content;margin:0;padding:11px 18px;border-radius:16px 16px 0 0;border:1px solid var(--line);border-bottom:0;background:rgba(148,163,184,.14);box-shadow:none;color:var(--muted);white-space:nowrap}
+.chrome-tabs .nav.active{background:var(--panel);color:var(--ink);border-color:var(--line);box-shadow:0 -2px 14px rgba(15,23,42,.07);position:relative;font-weight:850}
+.chrome-tabs .nav.active:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--panel)}
+.rating-explain{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.rating-explain div{border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:rgba(148,163,184,.08)}
+.rating-explain b{display:block;font-size:13px}.rating-explain span{display:block;font-size:12px;color:var(--muted);line-height:1.4;margin-top:2px}
+.focus-mode .app-header,.focus-mode .sidebar{display:none!important}
+.focus-mode .layout{display:block;max-width:none;margin:0;padding:0}
+.focus-mode .content{width:100%;min-height:100dvh}
+.focus-shell{min-height:100dvh;background:var(--bg);display:flex;flex-direction:column}
+.focus-tabbar{position:sticky;top:0;z-index:60;display:flex;align-items:flex-end;gap:6px;padding:8px 10px 0;background:linear-gradient(180deg,rgba(148,163,184,.30),rgba(148,163,184,.14));border-bottom:1px solid var(--line);backdrop-filter:blur(12px)}
+.focus-tab{max-width:min(62vw,520px);padding:12px 18px;border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;background:var(--panel);box-shadow:0 -2px 14px rgba(15,23,42,.06);font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.focus-sub{align-self:center;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.focus-close{margin-left:auto;align-self:center;background:var(--panel)}
+.focus-body{flex:1;width:100%;display:grid;place-items:start center;padding:18px}.focus-body .study-card{width:min(920px,100%);max-width:920px}.focus-body .panel{width:min(920px,100%)}
+.focus-progress{width:min(920px,100%);margin:0 auto 10px;display:flex;gap:8px;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px}
+.quiz-options{display:grid;gap:10px;margin-top:16px}
+.quiz-options .quiz-option{min-height:52px;border-radius:14px;padding:12px 14px;font-weight:750}
+@media(max-width:900px){
+  .sidebar{grid-template-columns:1fr;gap:10px}.chrome-tabs{position:sticky;top:0;z-index:25;background:var(--bg);padding:4px 2px 0;margin-bottom:2px}.chrome-tabs .nav{width:auto;margin:0;font-size:14px;min-height:46px;padding:10px 14px}
+}
+@media(max-width:520px){
+  .rating,.rating-explain{grid-template-columns:1fr!important}.focus-tabbar{gap:4px;padding:6px 6px 0}.focus-tab{font-size:14px;padding:10px 12px;max-width:58vw}.focus-sub{display:none}.focus-close{padding:8px 10px;min-height:40px}.focus-body{padding:10px}.focus-body .study-card{padding:14px}.quiz-options .quiz-option{min-height:50px}
+}
+
 /* PDF-like source view */
 .pdf-source{margin-top:18px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--panel);box-shadow:0 8px 22px rgba(15,23,42,.06)}
 .pdf-source>summary{list-style:none;cursor:pointer;padding:14px 16px;font-weight:850;background:linear-gradient(135deg,rgba(15,159,143,.16),rgba(94,234,212,.08));border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
@@ -112,13 +141,15 @@ input,select,textarea{min-height:44px}
 
   <main class="layout">
     <aside class="sidebar">
-      <button class="nav active" data-view="dashboard">📊 Hôm nay</button>
-      <button class="nav" data-view="study">🧠 Học / Review</button>
-      <button class="nav" data-view="quiz">✅ Quiz</button>
-      <button class="nav" data-view="drive">🎧 Drive Mode</button>
-      <button class="nav" data-view="library">🔎 Danh sách</button>
-      <button class="nav" data-view="mistakes">⚠️ Từ yếu</button>
-      <button class="nav" data-view="settings">⚙️ Cài đặt</button>
+      <div class="chrome-tabs" role="tablist" aria-label="Các tab chính">
+        <button class="nav active" data-view="dashboard" role="tab">📊 Hôm nay</button>
+        <button class="nav" data-view="study" role="tab">🧠 Học / Review</button>
+        <button class="nav" data-view="quiz" role="tab">✅ Quiz</button>
+        <button class="nav" data-view="drive" role="tab">🎧 Drive Mode</button>
+        <button class="nav" data-view="library" role="tab">🔎 Danh sách</button>
+        <button class="nav" data-view="mistakes" role="tab">⚠️ Từ yếu</button>
+        <button class="nav" data-view="settings" role="tab">⚙️ Cài đặt</button>
+      </div>
 
       <div class="filter-card">
         <h3>Bộ lọc nhanh</h3>
@@ -185,10 +216,16 @@ input,select,textarea{min-height:44px}
       <button class="primary reveal">Hiện đáp án</button>
       <div class="back hidden"></div>
       <div class="rating hidden">
-        <button data-rate="again" class="danger">Again</button>
-        <button data-rate="hard">Hard</button>
-        <button data-rate="good" class="primary">Good</button>
-        <button data-rate="easy" class="success">Easy</button>
+        <button data-rate="again" class="danger" title="Quên hoặc nhớ sai. App sẽ cho ôn lại sau khoảng 10 phút.">Chưa nhớ</button>
+        <button data-rate="hard" title="Có nhớ nhưng còn mơ hồ. App sẽ cho ôn lại sớm hơn.">Mơ hồ</button>
+        <button data-rate="good" class="primary" title="Nhớ được sau khi suy nghĩ. App sẽ giãn lịch ôn bình thường.">Nhớ được</button>
+        <button data-rate="easy" class="success" title="Nhớ rất nhanh và chắc. App sẽ giãn lịch ôn xa hơn.">Nhớ chắc</button>
+      </div>
+      <div class="rating-explain hidden">
+        <div><b>Chưa nhớ</b><span>Quên/sai → ôn lại sau khoảng 10 phút.</span></div>
+        <div><b>Mơ hồ</b><span>Nhớ không chắc → ôn lại sớm.</span></div>
+        <div><b>Nhớ được</b><span>Nhớ sau khi nghĩ → lịch ôn bình thường.</span></div>
+        <div><b>Nhớ chắc</b><span>Nhớ ngay → giãn lịch xa hơn.</span></div>
       </div>
     </article>
   </template>
@@ -275,6 +312,7 @@ function bindShell(){
     $all('.nav').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     stopDrive();
+    setFocusMode(false);
     render();
   }));
   $('#levelFilter').addEventListener('change', e=>{ app.filters.level=e.target.value; app.page=1; render(); });
@@ -362,6 +400,7 @@ function updateSidebarGoal(){
 
 function render(){
   const views = {dashboard:renderDashboard, study:renderStudy, quiz:renderQuiz, drive:renderDrive, library:renderLibrary, mistakes:renderMistakes, settings:renderSettings};
+  if(app.view !== 'quiz') setFocusMode(false);
   (views[app.view] || renderDashboard)();
   updateSidebarGoal();
 }
@@ -409,24 +448,55 @@ function miniList(cards){
   return `<div>${cards.map(c=>`<div class="pill" title="${esc(c.source)}">${esc(c.level)} · ${c.kind==='kanji'?'Kanji':'Từ'} · <b>${esc(c.title)}</b> ${esc(c.reading||c.hanviet||'')}</div>`).join(' ')}</div>`;
 }
 function activateNav(view){ $all('.nav').forEach(b=>b.classList.toggle('active', b.dataset.view===view)); }
+function setFocusMode(on){ document.body.classList.toggle('focus-mode', !!on); }
+function exitFocus(to='dashboard'){
+  setFocusMode(false);
+  app.currentStudy = null;
+  app.quiz = null;
+  app.view = to;
+  activateNav(to);
+  render();
+}
+function focusHeader(title, sub=''){
+  return `<div class="focus-tabbar"><div class="focus-tab">${esc(title)}</div>${sub?`<div class="focus-sub">${esc(sub)}</div>`:''}<button id="closeFocusBtn" class="focus-close ghost">Đóng</button></div>`;
+}
+function bindFocusClose(to='dashboard'){
+  const btn=$('#closeFocusBtn');
+  if(btn) btn.onclick=()=>exitFocus(to);
+}
+function ratingControlsHtml(){
+  return `<div class="rating hidden">
+    <button data-rate="again" class="danger" title="Quên hoặc nhớ sai. App sẽ cho ôn lại sau khoảng 10 phút.">Chưa nhớ</button>
+    <button data-rate="hard" title="Có nhớ nhưng còn mơ hồ. App sẽ cho ôn lại sớm hơn.">Mơ hồ</button>
+    <button data-rate="good" class="primary" title="Nhớ được sau khi suy nghĩ. App sẽ giãn lịch ôn bình thường.">Nhớ được</button>
+    <button data-rate="easy" class="success" title="Nhớ rất nhanh và chắc. App sẽ giãn lịch ôn xa hơn.">Nhớ chắc</button>
+  </div>
+  <div class="rating-explain hidden">
+    <div><b>Chưa nhớ</b><span>Quên/sai → ôn lại sau khoảng 10 phút.</span></div>
+    <div><b>Mơ hồ</b><span>Nhớ không chắc → ôn lại sớm.</span></div>
+    <div><b>Nhớ được</b><span>Nhớ sau khi nghĩ → lịch ôn bình thường.</span></div>
+    <div><b>Nhớ chắc</b><span>Nhớ ngay → giãn lịch xa hơn.</span></div>
+  </div>`;
+}
 
 function renderStudy(){
+  setFocusMode(false);
   $('#view').innerHTML = `
     <section class="panel">
       <h2>Học / Review</h2>
+      <p class="muted">Chọn kiểu phiên rồi bấm tạo. Khi phiên bắt đầu, app sẽ mở một tab học riêng dạng full màn hình để bạn tập trung.</p>
       <div class="toolbar">
         <button id="modeSetup" class="primary">Tạo phiên theo thiết lập</button>
         <button id="modeReview">Review đến hạn</button>
         <button id="modeNew">Học thẻ mới</button>
         <button id="modeAll">Luyện tất cả thẻ lọc</button>
       </div>
-      <div id="studyArea"></div>
+      <div id="studyArea"><div class="warning">Chưa tạo phiên. Hãy bấm một nút phía trên hoặc dùng phần “Thiết lập phiên học”.</div></div>
     </section>`;
   $('#modeSetup').onclick=()=>startStudyFromSetup();
   $('#modeReview').onclick=()=>startStudy('review', {limit: app.state.settings.sessionSize || 25});
   $('#modeNew').onclick=()=>startTodayGoalSession();
   $('#modeAll').onclick=()=>startStudy('all', {limit: app.state.settings.sessionSize || 25});
-  startStudy(app.currentStudy?.mode || app.state.settings.sessionMode || 'review', {limit: app.state.settings.sessionSize || 25});
 }
 function startStudyFromSetup(){
   const s = app.state.settings;
@@ -456,19 +526,30 @@ function startStudy(mode, opts={}){
   updateSidebarGoal();
 }
 function renderStudyCard(){
-  const area=$('#studyArea');
   const s=app.currentStudy;
   if(!s || !s.deck.length){
+    setFocusMode(false);
+    const area=$('#studyArea') || $('#view');
     area.innerHTML = `<div class="warning">Không có thẻ phù hợp. Hãy đổi bộ lọc hoặc chọn học tất cả.</div>`;
     return;
   }
+  setFocusMode(true);
   const card=s.deck[s.index];
   const p=getP(card);
-  area.innerHTML = `
-    <div class="toolbar"><span class="pill">${s.index+1}/${s.deck.length}</span><span class="pill">Mode: ${esc(s.mode)}</span><span class="pill">Lần học: ${p.reviewCount||0}</span><span class="pill">Due: ${fmtDate(p.dueAt)}</span></div>
-    ${studyCardHtml(card)}
-  `;
-  $('.reveal', area).onclick=()=>{ $('.back', area).classList.remove('hidden'); $('.rating', area).classList.remove('hidden'); $('.reveal', area).classList.add('hidden'); };
+  const modeName={review:'Review đến hạn',new:'Học thẻ mới',mixed:'Review + thẻ mới',all:'Luyện tất cả',single:'Học 1 thẻ'}[s.mode] || s.mode;
+  $('#view').innerHTML = `
+    <section class="focus-shell">
+      ${focusHeader(`Phiên học: ${modeName}`, `${s.index+1}/${s.deck.length}`)}
+      <main class="focus-body">
+        <div style="width:min(920px,100%)">
+          <div class="focus-progress"><span>${s.index+1}/${s.deck.length} thẻ</span><span>Lần học: ${p.reviewCount||0} · Due: ${fmtDate(p.dueAt)}</span></div>
+          ${studyCardHtml(card)}
+        </div>
+      </main>
+    </section>`;
+  bindFocusClose('dashboard');
+  const area=$('#view');
+  $('.reveal', area).onclick=()=>{ $('.back', area).classList.remove('hidden'); $('.rating', area).classList.remove('hidden'); $('.rating-explain', area)?.classList.remove('hidden'); $('.reveal', area).classList.add('hidden'); };
   $all('[data-rate]', area).forEach(btn=>btn.onclick=()=>rateCard(card, btn.dataset.rate));
 }
 function studyCardHtml(c){
@@ -477,7 +558,7 @@ function studyCardHtml(c){
     <div class="front">${studyFrontHtml(c)}</div>
     <button class="primary reveal">Hiện đáp án</button>
     <div class="back hidden">${backHtml(c)}<textarea class="noteBox" placeholder="Ghi chú cá nhân...">${esc(app.state.notes[c.id]||'')}</textarea></div>
-    <div class="rating hidden"><button data-rate="again" class="danger">Again</button><button data-rate="hard">Hard</button><button data-rate="good" class="primary">Good</button><button data-rate="easy" class="success">Easy</button></div>
+    ${ratingControlsHtml()}
   </article>`;
 }
 function metaPills(c){ return `<span class="pill">${esc(c.level)}</span><span class="pill">${c.kind==='kanji'?'Kanji':'Từ vựng'}</span><span class="pill">${esc(c.source)}</span><span class="pill">Trang ${c.page}</span><span class="pill">#${c.global_number||c.number}</span>`; }
@@ -615,27 +696,40 @@ function rateCard(card, rate){
   updateSidebarGoal();
   const s=app.currentStudy;
   if(s.index < s.deck.length-1){ s.index++; renderStudyCard(); }
-  else { $('#studyArea').innerHTML = `<div class="panel"><h2>Xong phiên học</h2><p>Bạn đã hoàn thành ${s.deck.length} thẻ.</p><button class="primary" onclick="renderDashboard();activateNav('dashboard')">Về hôm nay</button></div>`; }
+  else {
+    const doneText = `Hoàn thành ${s.deck.length} thẻ`;
+    $('#view').innerHTML = `<section class="focus-shell">${focusHeader('Xong phiên học', doneText)}<main class="focus-body"><section class="panel"><h2>Xong phiên học</h2><p>Bạn đã hoàn thành ${s.deck.length} thẻ.</p><div class="toolbar"><button id="finishDashboard" class="primary">Về hôm nay</button><button id="finishReview">Tạo phiên tiếp theo</button></div></section></main></section>`;
+    bindFocusClose('dashboard');
+    $('#finishDashboard').onclick=()=>exitFocus('dashboard');
+    $('#finishReview').onclick=()=>{ setFocusMode(false); app.view='study'; activateNav('study'); renderStudy(); };
+  }
 }
 
 function renderQuiz(){
+  setFocusMode(true);
   $('#view').innerHTML = `
-    <section class="panel">
-      <h2>Quiz nhanh</h2>
-      <p class="muted">Kiểu active recall: chỉ hiện câu hỏi. Cách đọc, Hán Việt và đáp án chỉ hiện sau khi bạn chọn.</p>
-      <div class="toolbar">
-        <label class="small">Kiểu câu hỏi
-          <select id="quizMode">
-            <option value="jp_to_meaning">Nhìn Nhật → chọn nghĩa</option>
-            <option value="meaning_to_jp">Nhìn nghĩa → chọn từ Nhật</option>
-            <option value="jp_to_reading">Nhìn Kanji → chọn cách đọc</option>
-            <option value="reading_to_jp">Nhìn cách đọc → chọn từ Nhật</option>
-          </select>
-        </label>
-        <button id="newQuiz" class="primary">Câu mới</button>
-      </div>
-      <div id="quizArea"></div>
+    <section class="focus-shell">
+      ${focusHeader('Quiz nhanh', 'Active recall')}
+      <main class="focus-body">
+        <section class="panel">
+          <h2>Quiz nhanh</h2>
+          <p class="muted">Kiểu active recall: chỉ hiện câu hỏi. Cách đọc, Hán Việt và đáp án chỉ hiện sau khi bạn chọn.</p>
+          <div class="toolbar">
+            <label class="small">Kiểu câu hỏi
+              <select id="quizMode">
+                <option value="jp_to_meaning">Nhìn Nhật → chọn nghĩa</option>
+                <option value="meaning_to_jp">Nhìn nghĩa → chọn từ Nhật</option>
+                <option value="jp_to_reading">Nhìn Kanji → chọn cách đọc</option>
+                <option value="reading_to_jp">Nhìn cách đọc → chọn từ Nhật</option>
+              </select>
+            </label>
+            <button id="newQuiz" class="primary">Câu mới</button>
+          </div>
+          <div id="quizArea"></div>
+        </section>
+      </main>
     </section>`;
+  bindFocusClose('dashboard');
   $('#quizMode').onchange=nextQuiz;
   $('#newQuiz').onclick=nextQuiz;
   nextQuiz();
@@ -789,7 +883,7 @@ function renderMistakes(){
   $('#view').innerHTML=`
     <section class="panel">
       <h2>Từ yếu / Kanji yếu</h2>
-      <p class="muted">Các thẻ bạn bấm Again/Hard hoặc trả lời sai quiz.</p>
+      <p class="muted">Các thẻ bạn bấm Chưa nhớ/Mơ hồ hoặc trả lời sai quiz.</p>
       ${weak.length?`<div class="table-wrap"><table><thead><tr><th>Nhật</th><th>Nghĩa</th><th>Sai</th><th>Đúng</th><th>Lần ôn tới</th></tr></thead><tbody>${weak.map(c=>{const p=getP(c);return `<tr><td class="jp-cell">${esc(c.title)}<br><span class="small muted">${esc(c.reading||c.hanviet||'')}</span></td><td>${esc(c.meaning_vi||'')}</td><td>${p.wrong||0}</td><td>${p.correct||0}</td><td>${fmtDate(p.dueAt)}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="warning">Chưa có dữ liệu lỗi sai.</div>'}
     </section>`;
 }
