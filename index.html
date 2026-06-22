@@ -125,6 +125,28 @@ input,select,textarea{min-height:44px}
 [data-theme="dark"] .pdf-left{background:#0d1b24;border-color:#334155}.pdf-no{background:#10b981;color:#fff;font-weight:900;border-radius:999px;padding:4px 10px;font-size:13px;align-self:flex-start}.pdf-word{font-size:clamp(38px,5vw,70px);line-height:1.05;font-weight:900;font-family:"Noto Sans JP","Yu Gothic",system-ui,sans-serif;word-break:keep-all}.pdf-reading-main{font-size:18px;font-weight:800;color:#0f766e}.pdf-hv{font-weight:900;color:#334155;text-transform:uppercase}.pdf-vi{font-weight:800;color:#0f766e}.pdf-right{padding:14px 16px;min-width:0}.pdf-section{display:grid;grid-template-columns:105px 1fr;gap:12px;border-bottom:1px solid #e5e7eb;padding:10px 0}.pdf-section:last-child{border-bottom:0}.pdf-label{font-weight:900;color:#111827;font-size:14px;white-space:nowrap}.pdf-label .jp-label{display:block;font-size:16px;color:#0f766e}.pdf-lines{display:grid;gap:6px}.pdf-line{padding:4px 0;line-height:1.65}.pdf-line.example{background:#f8fafc;border-left:4px solid #10b981;border-radius:8px;padding:7px 10px}.pdf-line.point{background:#fff7ed;border-left:4px solid #f59e0b;border-radius:8px;padding:7px 10px}.pdf-line.usage{background:#eef2ff;border-left:4px solid #6366f1;border-radius:8px;padding:7px 10px}.pdf-line.related{background:#f0fdfa;border-left:4px solid #14b8a6;border-radius:8px;padding:7px 10px}.pdf-bullet{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#10b981;color:#fff;font-weight:900;margin-right:6px}.pdf-kanji-card .pdf-word{font-size:clamp(72px,10vw,132px)}.pdf-memo{font-weight:750;color:#0f766e}.raw-toggle{margin:12px 0 0;border:1px dashed var(--line);border-radius:12px;padding:10px;background:rgba(148,163,184,.08)}.raw-toggle summary{cursor:pointer;font-weight:750;color:var(--muted)}
 @media(max-width:760px){.pdf-card{grid-template-columns:1fr}.pdf-left{border-right:0;border-bottom:2px solid #1f2937}.pdf-section{grid-template-columns:1fr;gap:4px}.pdf-source>summary:after{display:none}.pdf-lesson{text-align:left}}
 
+
+/* Font size controls for learning / quiz screens */
+:root{--learn-font-scale:1;}
+.font-size-label{display:inline-flex!important;align-items:center;gap:8px;margin:0!important;color:var(--muted);font-weight:700;white-space:nowrap}
+.font-size-label select{min-width:112px;margin-top:0!important;padding:9px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel)}
+.focus-font-control{display:flex;justify-content:flex-end;margin:0 auto 10px;width:min(920px,100%)}
+.study-card{font-size:calc(16px * var(--learn-font-scale));}
+.study-card .front .jp{font-size:clamp(calc(42px * var(--learn-font-scale)), calc(8vw * var(--learn-font-scale)), calc(96px * var(--learn-font-scale)))!important;}
+.study-card .front .reading{font-size:calc(24px * var(--learn-font-scale))!important;}
+.study-card .front .hanviet{font-size:calc(22px * var(--learn-font-scale))!important;}
+.study-card .meaning{font-size:calc(24px * var(--learn-font-scale))!important;}
+.study-card .answer-title,.study-card .back,.study-card .muted,.study-card textarea{font-size:calc(16px * var(--learn-font-scale));}
+.study-card .front .meaning.quiz-question{font-size:clamp(calc(30px * var(--learn-font-scale)), calc(5vw * var(--learn-font-scale)), calc(60px * var(--learn-font-scale)))!important;}
+.study-card .front .reading.quiz-question{font-size:clamp(calc(34px * var(--learn-font-scale)), calc(6vw * var(--learn-font-scale)), calc(68px * var(--learn-font-scale)))!important;}
+.quiz-options .quiz-option{font-size:calc(16px * var(--learn-font-scale));}
+.rating button{font-size:calc(15px * var(--learn-font-scale));}
+.rating-explain b{font-size:calc(13px * var(--learn-font-scale));}
+.rating-explain span{font-size:calc(12px * var(--learn-font-scale));}
+.drive-word{font-size:calc(64px * var(--learn-font-scale))!important;}
+#driveMeaning{font-size:calc(22px * var(--learn-font-scale))!important;}
+@media(max-width:900px){.focus-font-control{justify-content:flex-start}.font-size-label{width:100%;justify-content:space-between}.font-size-label select{min-width:140px}}
+
 </style>
 </head>
 <body>
@@ -191,6 +213,15 @@ input,select,textarea{min-height:44px}
             <option value="vi_to_jp">Nhìn nghĩa → nhớ tiếng Nhật</option>
             <option value="reading_to_jp">Nhìn cách đọc → nhớ Kanji/nghĩa</option>
             <option value="kanji_to_reading">Nhìn Kanji → nhớ cách đọc</option>
+          </select>
+        </label>
+        <label>Cỡ chữ khi học / quiz
+          <select id="fontScale" class="fontScaleControl">
+            <option value="0.85">Nhỏ</option>
+            <option value="1">Vừa</option>
+            <option value="1.2">Lớn</option>
+            <option value="1.45">Rất lớn</option>
+            <option value="1.7">Cực lớn</option>
           </select>
         </label>
         <button id="createSessionBtn" class="primary full-btn">Tạo phiên học</button>
@@ -263,6 +294,7 @@ function defaultState(){
       sessionSize: 25,
       sessionMode: 'review',
       frontMode: 'jp_to_vi',
+      fontScale: 1,
       driveDelay: 1200,
       showRaw: true
     },
@@ -295,6 +327,7 @@ function minutes(n){ return n*60*1000; }
 
 async function init(){
   document.documentElement.dataset.theme = app.state.theme || 'light';
+  applyLearningFontScale();
   bindShell();
   try{
     const json = window.STUDY_DATA || {cards: []};
@@ -323,9 +356,11 @@ function bindShell(){
   if($('#sessionMode')) $('#sessionMode').value = settings.sessionMode || 'review';
   if($('#sessionSize')) $('#sessionSize').value = settings.sessionSize || 25;
   if($('#frontMode')) $('#frontMode').value = settings.frontMode || 'jp_to_vi';
+  if($('#fontScale')) $('#fontScale').value = String(settings.fontScale || 1);
   $('#sessionMode')?.addEventListener('change', e=>{ settings.sessionMode=e.target.value; saveState(); updateSidebarGoal(); });
   $('#sessionSize')?.addEventListener('change', e=>{ settings.sessionSize=Math.max(5, Math.min(120, Number(e.target.value)||25)); e.target.value=settings.sessionSize; saveState(); updateSidebarGoal(); });
   $('#frontMode')?.addEventListener('change', e=>{ settings.frontMode=e.target.value; saveState(); if(app.view==='study') renderStudyCard(); });
+  $('#fontScale')?.addEventListener('change', e=>setLearningFontScale(e.target.value));
   $('#createSessionBtn')?.addEventListener('click', () => {
     app.view='study'; activateNav('study'); renderStudy(); startStudyFromSetup();
   });
@@ -403,6 +438,7 @@ function render(){
   if(app.view !== 'quiz') setFocusMode(false);
   (views[app.view] || renderDashboard)();
   updateSidebarGoal();
+  bindFontScaleControls(document);
 }
 
 function renderDashboard(){
@@ -464,6 +500,30 @@ function bindFocusClose(to='dashboard'){
   const btn=$('#closeFocusBtn');
   if(btn) btn.onclick=()=>exitFocus(to);
 }
+function fontOptions(selected){
+  const cur = Number(selected || app.state.settings.fontScale || 1);
+  const opts = [[0.85,'Nhỏ'],[1,'Vừa'],[1.2,'Lớn'],[1.45,'Rất lớn'],[1.7,'Cực lớn']];
+  return opts.map(([v,label])=>`<option value="${v}" ${Math.abs(v-cur)<0.001?'selected':''}>${label}</option>`).join('');
+}
+function fontSizeControl(id='fontScaleInline', label='Cỡ chữ'){
+  return `<label class="small font-size-label">${esc(label)} <select id="${esc(id)}" class="fontScaleControl">${fontOptions(app.state.settings.fontScale)}</select></label>`;
+}
+function applyLearningFontScale(){
+  const scale = Math.max(0.75, Math.min(2, Number(app.state.settings.fontScale) || 1));
+  document.documentElement.style.setProperty('--learn-font-scale', scale);
+}
+function setLearningFontScale(value){
+  app.state.settings.fontScale = Math.max(0.75, Math.min(2, Number(value) || 1));
+  applyLearningFontScale();
+  saveState();
+  $all('.fontScaleControl').forEach(el=>{ el.value = String(app.state.settings.fontScale); });
+}
+function bindFontScaleControls(root=document){
+  $all('.fontScaleControl', root).forEach(el=>{
+    el.value = String(app.state.settings.fontScale || 1);
+    el.onchange = e=>setLearningFontScale(e.target.value);
+  });
+}
 function ratingControlsHtml(){
   return `<div class="rating hidden">
     <button data-rate="again" class="danger" title="Quên hoặc nhớ sai. App sẽ cho ôn lại sau khoảng 10 phút.">Chưa nhớ</button>
@@ -486,6 +546,7 @@ function renderStudy(){
       <h2>Học / Review</h2>
       <p class="muted">Chọn kiểu phiên rồi bấm tạo. Khi phiên bắt đầu, app sẽ mở một tab học riêng dạng full màn hình để bạn tập trung.</p>
       <div class="toolbar">
+        ${fontSizeControl('studyFontScale','Cỡ chữ học/quiz')}
         <button id="modeSetup" class="primary">Tạo phiên theo thiết lập</button>
         <button id="modeReview">Review đến hạn</button>
         <button id="modeNew">Học thẻ mới</button>
@@ -543,6 +604,7 @@ function renderStudyCard(){
       <main class="focus-body">
         <div style="width:min(920px,100%)">
           <div class="focus-progress"><span>${s.index+1}/${s.deck.length} thẻ</span><span>Lần học: ${p.reviewCount||0} · Due: ${fmtDate(p.dueAt)}</span></div>
+          <div class="focus-font-control">${fontSizeControl('focusFontScale','Cỡ chữ')}</div>
           ${studyCardHtml(card)}
         </div>
       </main>
@@ -551,6 +613,7 @@ function renderStudyCard(){
   const area=$('#view');
   $('.reveal', area).onclick=()=>{ $('.back', area).classList.remove('hidden'); $('.rating', area).classList.remove('hidden'); $('.rating-explain', area)?.classList.remove('hidden'); $('.reveal', area).classList.add('hidden'); };
   $all('[data-rate]', area).forEach(btn=>btn.onclick=()=>rateCard(card, btn.dataset.rate));
+  bindFontScaleControls(area);
 }
 function studyCardHtml(c){
   return `<article class="study-card">
@@ -715,6 +778,7 @@ function renderQuiz(){
           <h2>Quiz nhanh</h2>
           <p class="muted">Kiểu active recall: chỉ hiện câu hỏi. Cách đọc, Hán Việt và đáp án chỉ hiện sau khi bạn chọn.</p>
           <div class="toolbar">
+            ${fontSizeControl('quizFontScale','Cỡ chữ')}
             <label class="small">Kiểu câu hỏi
               <select id="quizMode">
                 <option value="jp_to_meaning">Nhìn Nhật → chọn nghĩa</option>
@@ -732,6 +796,7 @@ function renderQuiz(){
   bindFocusClose('dashboard');
   $('#quizMode').onchange=nextQuiz;
   $('#newQuiz').onclick=nextQuiz;
+  bindFontScaleControls($('#view'));
   nextQuiz();
 }
 function nextQuiz(){
@@ -823,6 +888,7 @@ function renderDrive(){
         <div class="drive-word" id="driveWord">Sẵn sàng</div>
         <div id="driveMeaning" class="meaning muted">${deck.length} thẻ trong bộ lọc hiện tại</div>
         <div class="toolbar" style="justify-content:center">
+          ${fontSizeControl('driveFontScale','Cỡ chữ')}
           <button class="primary" id="driveStart">Bắt đầu</button>
           <button id="driveNext">Tiếp</button>
           <button id="driveStop" class="danger">Dừng</button>
@@ -902,6 +968,7 @@ function renderSettings(){
           <option value="reading_to_jp">Nhìn cách đọc → nhớ Kanji/nghĩa</option>
           <option value="kanji_to_reading">Nhìn Kanji → nhớ cách đọc</option>
         </select></label>
+        <label>Cỡ chữ mặc định khi học / quiz<select id="settingFontScale" class="fontScaleControl">${fontOptions(s.fontScale || 1)}</select></label>
         <label>Khoảng nghỉ Drive Mode / ms<input id="driveDelay" type="number" min="200" max="5000" step="100" value="${s.driveDelay||1200}"></label>
         <label>Hiện nội dung gốc PDF<select id="showRaw"><option value="true">Có</option><option value="false">Không</option></select></label>
       </div>
@@ -912,17 +979,22 @@ function renderSettings(){
     <section class="panel"><h2>Thông tin dữ liệu</h2>${dataInfo()}</section>`;
   $('#showRaw').value=String(!!s.showRaw);
   $('#settingFrontMode').value=s.frontMode || 'jp_to_vi';
+  $('#settingFontScale').value=String(s.fontScale || 1);
+  bindFontScaleControls($('#view'));
   $('#saveSettings').onclick=()=>{
     s.newPerDay=Number($('#newPerDay').value)||30;
     s.sessionSize=Number($('#settingSessionSize').value)||25;
     s.frontMode=$('#settingFrontMode').value || 'jp_to_vi';
+    s.fontScale=Number($('#settingFontScale').value)||1;
     s.driveDelay=Number($('#driveDelay').value)||1200;
     s.showRaw=$('#showRaw').value==='true';
     if($('#sessionSize')) $('#sessionSize').value=s.sessionSize;
     if($('#frontMode')) $('#frontMode').value=s.frontMode;
+    if($('#fontScale')) $('#fontScale').value=String(s.fontScale);
+    applyLearningFontScale();
     saveState(); updateSidebarGoal(); alert('Đã lưu cài đặt');
   };
-  $('#resetBtn').onclick=()=>{ if(confirm('Xóa toàn bộ tiến độ học?')){ app.state=defaultState(); saveState(); renderSettings(); } };
+  $('#resetBtn').onclick=()=>{ if(confirm('Xóa toàn bộ tiến độ học?')){ app.state=defaultState(); applyLearningFontScale(); saveState(); renderSettings(); } };
   $('#importBtn').onclick=()=>$('#importFile').click();
   $('#importFile').onchange=importProgress;
 }
@@ -938,7 +1010,7 @@ function exportProgress(){
 function importProgress(e){
   const file=e.target.files[0]; if(!file) return;
   const r=new FileReader();
-  r.onload=()=>{ try{ app.state=JSON.parse(r.result); saveState(); alert('Đã nhập tiến độ'); render(); }catch(err){ alert('File không hợp lệ'); } };
+  r.onload=()=>{ try{ app.state=migrateState(JSON.parse(r.result)); applyLearningFontScale(); saveState(); alert('Đã nhập tiến độ'); render(); }catch(err){ alert('File không hợp lệ'); } };
   r.readAsText(file);
 }
 function shuffle(arr){ return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]); }
