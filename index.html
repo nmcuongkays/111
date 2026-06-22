@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="Nihongo Coach" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="format-detection" content="telephone=no" />
-  <title>Nihongo Memory Coach - GitHub Pages</title>
+  <title>Nihongo Memory Coach - Mazii & Shuffle</title>
   <style>
 :root{
   --bg:#f5f7fb; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280;
@@ -152,6 +152,38 @@ input,select,textarea{min-height:44px}
 .drive-word{font-size:calc(64px * var(--learn-font-scale))!important;}
 #driveMeaning{font-size:calc(22px * var(--learn-font-scale))!important;}
 @media(max-width:900px){.focus-font-control{justify-content:flex-start}.font-size-label{width:100%;justify-content:space-between}.font-size-label select{min-width:140px}}
+
+
+/* Mazii lookup helpers */
+.lookup-word{
+  display:inline;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  font-weight:inherit;
+  line-height:inherit;
+  padding:0 2px;
+  min-height:0;
+  border-radius:8px;
+  cursor:pointer;
+  text-decoration:underline dotted rgba(15,159,143,.55);
+  text-underline-offset:.12em;
+}
+.lookup-word:hover{background:rgba(15,159,143,.08);transform:none}
+.jp .lookup-word,.pdf-word .lookup-word,.jp-cell .lookup-word,.jp-mini .lookup-word{font-family:"Noto Sans JP","Yu Gothic",system-ui,sans-serif}
+.mazii-menu{
+  position:fixed;z-index:99999;min-width:210px;max-width:min(86vw,320px);
+  background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 20px 50px rgba(15,23,42,.24);padding:10px;display:none
+}
+.mazii-menu.show{display:block}
+.mazii-menu-word{font-size:24px;font-weight:900;margin:2px 4px 8px;word-break:break-all}
+.mazii-menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mazii-menu-actions button{width:100%;min-height:44px}
+.mazii-fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:99998;border-radius:999px;background:var(--primary);color:#fff;box-shadow:0 12px 30px rgba(15,23,42,.22);display:none;align-items:center;gap:6px;padding:10px 14px;font-weight:850}
+.mazii-fab.show{display:inline-flex}
+.mazii-note{font-size:13px;color:var(--muted);margin-top:8px}
+@media(max-width:480px){.mazii-menu{left:10px!important;right:10px!important;top:auto!important;bottom:calc(72px + env(safe-area-inset-bottom));max-width:none}.mazii-menu-word{font-size:22px}}
 
 </style>
 </head>
@@ -326,6 +358,88 @@ function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(app.state)); }
 function $(sel, root=document){ return root.querySelector(sel); }
 function $all(sel, root=document){ return Array.from(root.querySelectorAll(sel)); }
 function esc(s=''){ return String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+function attr(s=''){ return esc(s); }
+function hasJapaneseText(s){ return /[一-龯々ぁ-んァ-ヶー]/.test(String(s||'')); }
+function cleanLookupText(text){
+  const raw=String(text||'').replace(/\s+/g,' ').trim();
+  if(!raw) return '';
+  const jp=raw.match(/[一-龯々ぁ-んァ-ヶー]+/g);
+  if(jp && jp.length){
+    // Ưu tiên cụm đầu tiên để tránh lấy cả câu dài hoặc cả phần dịch.
+    return jp[0].slice(0,40);
+  }
+  return raw.split(' ')[0].slice(0,40);
+}
+function maziiUrl(text){ return 'https://mazii.net/vi-VN/search/word/javi/' + encodeURIComponent(cleanLookupText(text)); }
+function openMazii(text){
+  const q=cleanLookupText(text);
+  if(!q){ alert('Hãy chọn hoặc chạm vào một từ tiếng Nhật trước.'); return; }
+  window.open(maziiUrl(q), '_blank', 'noopener');
+}
+function lookupWordHtml(text, extraClass=''){
+  const q=String(text||'').trim();
+  if(!q) return '';
+  return `<button type="button" class="lookup-word ${esc(extraClass)}" data-lookup="${attr(q)}" title="Chạm để tra Mazii">${esc(q)}</button>`;
+}
+function ensureMaziiUi(){
+  let menu=$('#maziiMenu');
+  if(!menu){
+    menu=document.createElement('div');
+    menu.id='maziiMenu';
+    menu.className='mazii-menu';
+    menu.innerHTML=`<div class="mazii-menu-word" id="maziiMenuWord"></div><div class="mazii-menu-actions"><button class="primary" id="maziiOpenBtn">Tra Mazii</button><button id="maziiCopyBtn">Sao chép</button><button class="ghost" id="maziiCloseBtn" style="grid-column:1/-1">Đóng</button></div>`;
+    document.body.appendChild(menu);
+  }
+  let fab=$('#maziiFab');
+  if(!fab){
+    fab=document.createElement('button');
+    fab.id='maziiFab';
+    fab.className='mazii-fab';
+    fab.type='button';
+    fab.textContent='🔍 Tra Mazii';
+    document.body.appendChild(fab);
+  }
+  return {menu,fab};
+}
+function hideMaziiMenu(){ const m=$('#maziiMenu'); if(m) m.classList.remove('show'); }
+function showMaziiMenu(text, x, y){
+  const q=cleanLookupText(text);
+  if(!q || !hasJapaneseText(q)) return;
+  const {menu}=ensureMaziiUi();
+  $('#maziiMenuWord').textContent=q;
+  $('#maziiOpenBtn').onclick=()=>openMazii(q);
+  $('#maziiCopyBtn').onclick=async()=>{ try{ await navigator.clipboard.writeText(q); }catch(e){} hideMaziiMenu(); };
+  $('#maziiCloseBtn').onclick=hideMaziiMenu;
+  const pad=12;
+  const left=Math.min(Math.max(pad, x||pad), window.innerWidth-pad-240);
+  const top=Math.min(Math.max(pad, y||pad), window.innerHeight-pad-170);
+  menu.style.left=left+'px'; menu.style.top=top+'px';
+  menu.classList.add('show');
+}
+function selectedJapaneseText(){ return cleanLookupText(window.getSelection ? window.getSelection().toString() : ''); }
+function updateMaziiFab(){
+  const {fab}=ensureMaziiUi();
+  const q=selectedJapaneseText();
+  if(q && hasJapaneseText(q)){ fab.classList.add('show'); fab.onclick=()=>openMazii(q); }
+  else fab.classList.remove('show');
+}
+function bindMaziiLookup(){
+  ensureMaziiUi();
+  document.addEventListener('click', e=>{
+    const target=e.target.closest('[data-lookup], .lookup-word');
+    if(target){
+      e.preventDefault(); e.stopPropagation();
+      const q=target.dataset.lookup || target.textContent || '';
+      const r=target.getBoundingClientRect();
+      showMaziiMenu(q, r.left, r.bottom+8);
+      return;
+    }
+    if(!e.target.closest('#maziiMenu')) hideMaziiMenu();
+  }, true);
+  document.addEventListener('selectionchange', ()=>setTimeout(updateMaziiFab, 80));
+  document.addEventListener('mouseup', ()=>setTimeout(updateMaziiFab, 80));
+  document.addEventListener('touchend', ()=>setTimeout(updateMaziiFab, 220), {passive:true});
+}
 function fmtDate(ts){ if(!ts) return 'Chưa học'; return new Date(ts).toLocaleString('vi-VN'); }
 function now(){ return Date.now(); }
 function days(n){ return n*24*60*60*1000; }
@@ -335,6 +449,7 @@ async function init(){
   document.documentElement.dataset.theme = app.state.theme || 'light';
   applyLearningFontScale();
   bindShell();
+  bindMaziiLookup();
   try{
     const json = window.STUDY_DATA || {cards: []};
     app.cards = (json.cards || []).map(c => ({...c, searchText: makeSearchText(c)}));
@@ -450,8 +565,8 @@ function render(){
 function renderDashboard(){
   const all=countStats(app.cards), f=countStats(filteredCards());
   const t=todayStats();
-  const due=filteredCards().filter(isDue).slice(0,8);
-  const nextNew=filteredCards().filter(isNew).slice(0,8);
+  const due=shuffle(filteredCards().filter(isDue)).slice(0,8);
+  const nextNew=shuffle(filteredCards().filter(isNew)).slice(0,8);
   $('#view').innerHTML = `
     <section class="panel">
       <h2>Hôm nay nên học gì?</h2>
@@ -550,7 +665,7 @@ function renderStudy(){
   $('#view').innerHTML = `
     <section class="panel">
       <h2>Học / Review</h2>
-      <p class="muted">Chọn kiểu phiên rồi bấm tạo. Khi phiên bắt đầu, app sẽ mở một tab học riêng dạng full màn hình để bạn tập trung.</p>
+      <p class="muted">Chọn kiểu phiên rồi bấm tạo. Khi phiên bắt đầu, app sẽ mở một tab học riêng dạng full màn hình. Thứ tự thẻ được đảo lộn so với PDF gốc để tránh học vẹt.</p>
       <div class="toolbar">
         ${fontSizeControl('studyFontScale','Cỡ chữ học/quiz')}
         <button id="modeSetup" class="primary">Tạo phiên theo thiết lập</button>
@@ -577,15 +692,16 @@ function startTodayGoalSession(){
 function startStudy(mode, opts={}){
   if(mode === 'single' && app.currentStudy?.deck?.length){ renderStudyCard(); return; }
   const limit = Number(opts.limit || app.state.settings.sessionSize || 25);
-  let base = filteredCards();
+  const base = filteredCards();
   let deck = base;
-  if(mode==='review') deck = base.filter(isDue).slice(0, limit);
-  if(mode==='new') deck = base.filter(isNew).slice(0, limit);
+  // Khi tạo phiên học, đảo lộn thứ tự so với file PDF gốc để tránh học thuộc theo vị trí.
+  if(mode==='review') deck = shuffle(base.filter(isDue)).slice(0, limit);
+  if(mode==='new') deck = shuffle(base.filter(isNew)).slice(0, limit);
   if(mode==='mixed'){
-    const due = base.filter(isDue).slice(0, Math.ceil(limit * 0.6));
+    const due = shuffle(base.filter(isDue)).slice(0, Math.ceil(limit * 0.6));
     const used = new Set(due.map(c=>c.id));
-    const fresh = base.filter(c=>isNew(c) && !used.has(c.id)).slice(0, limit - due.length);
-    deck = [...due, ...fresh];
+    const fresh = shuffle(base.filter(c=>isNew(c) && !used.has(c.id))).slice(0, limit - due.length);
+    deck = shuffle([...due, ...fresh]);
   }
   if(mode==='all') deck = shuffle(base).slice(0, limit);
   app.currentStudy = { mode, deck, index:0, revealed:false };
@@ -632,14 +748,14 @@ function studyCardHtml(c){
 }
 function metaPills(c){ return `<span class="pill">${esc(c.level)}</span><span class="pill">${c.kind==='kanji'?'Kanji':'Từ vựng'}</span><span class="pill">${esc(c.source)}</span><span class="pill">Trang ${c.page}</span><span class="pill">#${c.global_number||c.number}</span>`; }
 function fullFrontHtml(c){
-  return `<div class="jp">${esc(c.title)}</div>${c.reading?`<div class="reading">${esc(c.reading)}</div>`:''}${c.hanviet?`<div class="hanviet">${esc(c.hanviet)}</div>`:''}`;
+  return `<div class="jp">${lookupWordHtml(c.title)}</div>${c.reading?`<div class="reading">${esc(c.reading)}</div>`:''}${c.hanviet?`<div class="hanviet">${esc(c.hanviet)}</div>`:''}`;
 }
 function studyFrontHtml(c){
   const mode = app.state.settings.frontMode || 'jp_to_vi';
   if(mode === 'vi_to_jp') return `<div class="meaning quiz-question">${esc(c.meaning_vi || '—')}</div><div class="muted">Hãy nhớ từ tiếng Nhật + cách đọc.</div>`;
   if(mode === 'reading_to_jp') return `<div class="reading quiz-question">${esc(c.reading || '—')}</div><div class="muted">Hãy nhớ Kanji/từ Nhật + nghĩa.</div>`;
-  if(mode === 'kanji_to_reading') return `<div class="jp quiz-question">${esc(c.title)}</div><div class="muted">Hãy nhớ cách đọc trước khi lật thẻ.</div>`;
-  return `<div class="jp quiz-question">${esc(c.title)}</div><div class="muted">Hãy nhớ cách đọc + Hán Việt + nghĩa.</div>`;
+  if(mode === 'kanji_to_reading') return `<div class="jp quiz-question">${lookupWordHtml(c.title)}</div><div class="muted">Hãy nhớ cách đọc trước khi lật thẻ.</div>`;
+  return `<div class="jp quiz-question">${lookupWordHtml(c.title)}</div><div class="muted">Hãy nhớ cách đọc + Hán Việt + nghĩa.</div>`;
 }
 
 function rawLineList(raw){
@@ -691,7 +807,7 @@ function vocabPdfLikeHtml(c){
     <div class="pdf-card">
       <div class="pdf-left">
         <div class="pdf-no">${esc(String(c.number||c.global_number||'' ).padStart(2,'0'))}</div>
-        <div class="pdf-word">${esc(c.title||'')}</div>
+        <div class="pdf-word">${lookupWordHtml(c.title||'')}</div>
         ${c.reading?`<div class="pdf-reading-main">${esc(c.reading)}</div>`:''}
         ${c.hanviet?`<div class="pdf-hv">${esc(c.hanviet)}</div>`:''}
         ${c.meaning_vi?`<div class="pdf-vi">${esc(c.meaning_vi)}</div>`:''}
@@ -720,7 +836,7 @@ function kanjiPdfLikeHtml(c){
     <div class="pdf-card pdf-kanji-card">
       <div class="pdf-left">
         <div class="pdf-no">${esc(String(c.number||c.global_number||'' ).padStart(2,'0'))}</div>
-        <div class="pdf-word">${esc(c.title||'')}</div>
+        <div class="pdf-word">${lookupWordHtml(c.title||'')}</div>
         ${c.hanviet?`<div class="pdf-hv">${esc(c.hanviet)}</div>`:''}
       </div>
       <div class="pdf-right">
@@ -739,6 +855,8 @@ function backHtml(c){
   return `<div class="answer-title">Đáp án</div>
     ${fullFrontHtml(c)}
     ${c.meaning_vi?`<div class="meaning">${esc(c.meaning_vi)}</div>`:''}
+    <div class="toolbar"><button type="button" class="primary" data-lookup="${attr(c.title)}">Tra từ này bằng Mazii</button></div>
+    <div class="mazii-note">Mẹo: trong phần nội dung gốc, bạn có thể bôi đen từ tiếng Nhật rồi bấm nút “🔍 Tra Mazii” ở góc màn hình.</div>
     ${app.state.settings.showRaw?`<details class="pdf-source" open><summary>Nội dung gốc đã trích từ PDF</summary>${pdfLikeHtml(c)}</details>`:''}`;
 }
 function rateCard(card, rate){
@@ -782,7 +900,7 @@ function renderQuiz(){
       <main class="focus-body">
         <section class="panel">
           <h2>Quiz nhanh</h2>
-          <p class="muted">Kiểu active recall: chỉ hiện câu hỏi. Cách đọc, Hán Việt và đáp án chỉ hiện sau khi bạn chọn.</p>
+          <p class="muted">Kiểu active recall: chỉ hiện câu hỏi. Cách đọc, Hán Việt và đáp án chỉ hiện sau khi bạn chọn. Sau khi hiện đáp án, có thể chạm vào từ để tra Mazii.</p>
           <div class="toolbar">
             ${fontSizeControl('quizFontScale','Cỡ chữ')}
             <label class="small">Kiểu câu hỏi
@@ -917,7 +1035,7 @@ function answerDetailHtml(c, ok){
   return `<div class="quiz-feedback-card ${ok?'':'wrong'}">
     <div class="quiz-feedback-title">${ok?'Đúng':'Chưa đúng'} · Đáp án đầy đủ</div>
     <div class="quiz-answer-detail">
-      <div class="jp-mini">${esc(c.title)}</div>
+      <div class="jp-mini">${lookupWordHtml(c.title)}</div>
       ${c.reading?`<div><b>Cách đọc:</b> ${esc(c.reading)}</div>`:''}
       ${c.hanviet?`<div><b>Hán-Việt:</b> ${esc(c.hanviet)}</div>`:''}
       ${c.meaning_vi?`<div><b>Nghĩa / mẹo nhớ:</b> ${esc(compactText(c.meaning_vi, 140))}</div>`:''}
@@ -956,7 +1074,7 @@ function rateSilently(card, rate){
 }
 
 function renderDrive(){
-  const deck=filteredCards().slice(0,300);
+  const deck=shuffle(filteredCards()).slice(0,300);
   app.drive.list=deck;
   $('#view').innerHTML=`
     <section class="panel">
@@ -1014,7 +1132,7 @@ function renderLibrary(){
       <h2>Danh sách thẻ</h2>
       <p class="muted">${cards.length} thẻ phù hợp bộ lọc. Click “Học” để mở thẻ đó.</p>
       <div class="table-wrap"><table><thead><tr><th>#</th><th>Nhật</th><th>Đọc/Hán-Việt</th><th>Nghĩa</th><th>Nguồn</th><th></th></tr></thead><tbody>
-        ${slice.map(c=>`<tr><td>${c.global_number||c.number}</td><td class="jp-cell">${esc(c.title)}</td><td>${esc([c.reading,c.hanviet].filter(Boolean).join(' · '))}</td><td>${esc(c.meaning_vi||'')}</td><td>${esc(c.level)} · ${c.kind} · trang ${c.page}</td><td><button data-open="${c.id}">Học</button></td></tr>`).join('')}
+        ${slice.map(c=>`<tr><td>${c.global_number||c.number}</td><td class="jp-cell">${lookupWordHtml(c.title)}</td><td>${esc([c.reading,c.hanviet].filter(Boolean).join(' · '))}</td><td>${esc(c.meaning_vi||'')}</td><td>${esc(c.level)} · ${c.kind} · trang ${c.page}</td><td><button data-open="${c.id}">Học</button></td></tr>`).join('')}
       </tbody></table></div>
       <div class="pagination"><button id="prevPage">←</button><span>Trang ${app.page}/${pages}</span><button id="nextPage">→</button></div>
     </section>`;
